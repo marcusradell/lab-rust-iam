@@ -25,7 +25,7 @@ async fn main() {
     let jwt_secret = std::env::var("JWT_SECRET")
         .unwrap_or_else(|_| "your-secret-key-change-this-in-production".to_string());
 
-    let state = Arc::new(AppState {
+    let _state = Arc::new(AppState {
         db,
         jwt_secret,
         issuer: "http://localhost:3000".to_string(),
@@ -33,7 +33,7 @@ async fn main() {
 
     let app = Router::new()
         .nest("/status", features::status::router())
-        .with_state(state);
+        .nest("/authorize", features::authorization::router());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
