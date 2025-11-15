@@ -1,16 +1,7 @@
 mod features;
 
-use std::sync::Arc;
-
 use axum::Router;
-use sqlx::{PgPool, migrate, postgres::PgPoolOptions};
-
-#[derive(Clone)]
-struct AppState {
-    db: PgPool,
-    jwt_secret: String,
-    issuer: String,
-}
+use sqlx::{migrate, postgres::PgPoolOptions};
 
 #[tokio::main]
 async fn main() {
@@ -21,15 +12,6 @@ async fn main() {
     let db = PgPoolOptions::new().connect(&db_url).await.unwrap();
 
     migrate!("./migrations").run(&db).await.unwrap();
-
-    let jwt_secret = std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "your-secret-key-change-this-in-production".to_string());
-
-    let _state = Arc::new(AppState {
-        db,
-        jwt_secret,
-        issuer: "http://localhost:3000".to_string(),
-    });
 
     let app = Router::new()
         .nest("/status", features::status::router())
