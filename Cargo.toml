@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.6", features = ["form"] }
+chrono = "0.4.39"
 dotenvy = "0.15.7"
 jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
 reqwest = "0.12.24"
@@ -14,6 +15,8 @@ sqlx = { version = "0.8.6", features = [
   "tls-rustls",
   "postgres",
   "migrate",
+  "uuid",
+  "chrono",
 ] }
 tokio = { version = "1.48.0", features = ["full"] }
 tower-cookies = "0.11.0"

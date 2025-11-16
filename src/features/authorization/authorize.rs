@@ -1,6 +1,7 @@
 use axum::{Form, extract::State, response::Redirect};
 use serde::Deserialize;
 use sqlx::PgPool;
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct AuthorizeFormData {
@@ -12,22 +13,38 @@ pub async fn handler(
     State(db): State<PgPool>,
     Form(body): Form<AuthorizeFormData>,
 ) -> Result<Redirect, axum::http::StatusCode> {
-    let user_exists =
-        sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
+    let user_exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
             .bind(&body.email)
             .fetch_one(&db)
             .await
             .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     if !user_exists {
-        return Err(axum::http::StatusCode::UNAUTHORIZED);
-    }
+        let id = Uuid::new_v4();
+        let created_at = chrono::Utc::now();
 
-    let expected_email = std::env::var("SIGN_IN_EMAIL").unwrap();
-    let expected_password = std::env::var("SIGN_IN_PASSWORD").unwrap();
+        sqlx::query(
+            "INSERT INTO users (id, email, password_hash, created_at) VALUES ($1, $2, $3, $4)",
+        )
+        .bind(id)
+        .bind(&body.email)
+        .bind(&body.password)
+        .bind(created_at)
+        .execute(&db)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    } else {
+        let stored_password: String =
+            sqlx::query_scalar("SELECT password_hash FROM users WHERE email = $1")
+                .bind(&body.email)
+                .fetch_one(&db)
+                .await
+                .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    if body.email != expected_email || body.password != expected_password {
-        return Err(axum::http::StatusCode::UNAUTHORIZED);
+        if body.password != stored_password {
+            return Err(axum::http::StatusCode::UNAUTHORIZED);
+        }
     }
 
     Ok(Redirect::to(

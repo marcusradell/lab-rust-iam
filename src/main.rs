@@ -5,7 +5,7 @@ use axum::{
     response::{IntoResponse, Redirect},
     routing::get,
 };
-use sqlx::{PgPool, migrate, postgres::PgPoolOptions};
+use sqlx::{migrate, postgres::PgPoolOptions};
 
 async fn root_route() -> impl IntoResponse {
     Redirect::to("/client")
@@ -23,10 +23,12 @@ async fn main() {
 
     let app = Router::new()
         .nest("/status", features::status::router())
-        .nest("/authorization", features::authorization::router())
+        .nest(
+            "/authorization",
+            features::authorization::router(db.clone()),
+        )
         .nest("/client", features::client::router())
-        .merge(Router::new().route("/", get(root_route)))
-        .with_state(db);
+        .merge(Router::new().route("/", get(root_route)));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
