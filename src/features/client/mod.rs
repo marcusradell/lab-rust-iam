@@ -82,7 +82,11 @@ async fn landing_page(cookies: Cookies) -> impl IntoResponse {
 }
 
 async fn log_out(cookies: Cookies) -> impl IntoResponse {
-    let mut cookie = Cookie::from("session");
+    let mut cookie = Cookie::from("access_token");
+    cookie.set_path("/");
+    cookies.remove(cookie);
+
+    let mut cookie = Cookie::from("refresh_token");
     cookie.set_path("/");
     cookies.remove(cookie);
 
