@@ -1,0 +1,11 @@
+use axum::{
+    Router,
+    routing::{get, post},
+};
+
+pub fn router() -> Router {
+    Router::new()
+        .route("/sign_in", get(super::sign_in::sign_in))
+        .route("/authorize", post(super::authorize::authorize))
+        .route("/token", post(super::token::token))
+}
