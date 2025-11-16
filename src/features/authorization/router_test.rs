@@ -19,7 +19,11 @@ async fn test_sign_in_route() {
         .await
         .unwrap();
 
-    assert_eq!(response.status(), StatusCode::OK)
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+        response.headers().get("Content-Type").unwrap(),
+        "text/html; charset=utf-8"
+    );
 }
 
 #[tokio::test]
