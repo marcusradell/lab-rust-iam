@@ -14,20 +14,27 @@ struct QueryData {
     code: String,
 }
 
+#[derive(Deserialize)]
+struct AccessToken {
+    access_token: String,
+}
+
 async fn authorization_callback(
     Query(query_data): Query<QueryData>,
     cookies: Cookies,
 ) -> impl IntoResponse {
     let client = reqwest::Client::new();
 
-    let _response = client
+    let response = client
         .post("http://localhost:3000/authorization/token")
         .json(&query_data)
         .send()
         .await
         .unwrap();
 
-    let cookie: Cookie = Cookie::build(("session", "[[TODO: session ID]]"))
+    let access_token: AccessToken = response.json().await.unwrap();
+
+    let cookie: Cookie = Cookie::build(("session", access_token.access_token))
         .path("/")
         .secure(true)
         .http_only(true)
