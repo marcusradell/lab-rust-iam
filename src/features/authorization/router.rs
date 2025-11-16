@@ -5,7 +5,7 @@ use axum::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/sign_in", get(super::sign_in::sign_in))
+        .route("/sign_in", get(super::sign_in::handler))
         .route("/authorize", post(super::authorize::handler))
         .route("/token", post(super::token::token))
 }

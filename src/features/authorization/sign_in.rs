@@ -1,6 +1,6 @@
 use axum::response::{Html, IntoResponse};
 
-pub async fn sign_in() -> impl IntoResponse {
+pub async fn handler() -> impl IntoResponse {
     Html(
         r#"
         <H1>Sign In</H1>
