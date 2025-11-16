@@ -17,5 +17,7 @@ pub async fn authorize(
         return Err(axum::http::StatusCode::UNAUTHORIZED);
     }
 
-    Ok(Redirect::to("/client/authorization_callback?code=123"))
+    Ok(Redirect::to(
+        "http://localhost:3000/client/authorization_callback?code=123",
+    ))
 }
