@@ -1,3 +1,4 @@
+use axum::routing::post;
 use axum::{
     Router,
     response::{Html, IntoResponse, Redirect},
@@ -46,13 +47,27 @@ async fn landing_page(cookies: Cookies) -> impl IntoResponse {
             r#"
                 <H1>Welcome</H1>
                 <p>You are signed in!</p>
+
+                <form action="/client/log_out" method="post">
+                    <button type="submit">Log out</button>
+                </form>
             "#,
         )
     }
 }
+
+async fn log_out(cookies: Cookies) -> impl IntoResponse {
+    let mut cookie = Cookie::from("session");
+    cookie.set_path("/");
+    cookies.remove(cookie);
+
+    Redirect::to("/client")
+}
+
 pub fn router() -> Router {
     Router::new()
         .route("/authorization_callback", get(authorization_callback))
         .route("/", get(landing_page))
+        .route("/log_out", post(log_out))
         .layer(CookieManagerLayer::new())
 }
