@@ -7,7 +7,7 @@ pub struct AuthorizeFormData {
     password: String,
 }
 
-pub async fn authorize(
+pub async fn handler(
     Form(body): Form<AuthorizeFormData>,
 ) -> Result<Redirect, axum::http::StatusCode> {
     let expected_email = std::env::var("SIGN_IN_EMAIL").unwrap();
