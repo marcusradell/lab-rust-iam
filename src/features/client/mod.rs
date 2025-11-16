@@ -1,13 +1,32 @@
+use axum::extract::Query;
 use axum::routing::post;
 use axum::{
     Router,
     response::{Html, IntoResponse, Redirect},
     routing::get,
 };
+use serde::{Deserialize, Serialize};
 use tower_cookies::CookieManagerLayer;
 use tower_cookies::{Cookie, Cookies};
 
-async fn authorization_callback(cookies: Cookies) -> impl IntoResponse {
+#[derive(Serialize, Deserialize)]
+struct QueryData {
+    code: String,
+}
+
+async fn authorization_callback(
+    Query(query_data): Query<QueryData>,
+    cookies: Cookies,
+) -> impl IntoResponse {
+    let client = reqwest::Client::new();
+
+    let _response = client
+        .post("http://localhost:3000/authorization/token")
+        .json(&query_data)
+        .send()
+        .await
+        .unwrap();
+
     let cookie: Cookie = Cookie::build(("session", "[[TODO: session ID]]"))
         .path("/")
         .secure(true)
@@ -15,14 +34,6 @@ async fn authorization_callback(cookies: Cookies) -> impl IntoResponse {
         .into();
 
     cookies.add(cookie);
-
-    let client = reqwest::Client::new();
-
-    let _response = client
-        .post("http://localhost:3000/authorization/token")
-        .send()
-        .await
-        .unwrap();
 
     Redirect::to("/client")
 }
