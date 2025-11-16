@@ -6,9 +6,11 @@ edition = "2024"
 [dependencies]
 argon2 = "0.5.3"
 axum = { version = "0.8.6", features = ["form"] }
+base64 = "0.22.1"
 chrono = "0.4.39"
 dotenvy = "0.15.7"
 jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
+rand = "0.8.5"
 reqwest = "0.12.24"
 serde = { version = "1.0.228", features = ["derive"] }
 sqlx = { version = "0.8.6", features = [
