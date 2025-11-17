@@ -50,6 +50,7 @@ async fn test_post_sign_in() {
         .finish();
 
     let response = router
+        .clone()
         .oneshot(
             Request::builder()
                 .uri("/sign_in")
@@ -69,7 +70,37 @@ async fn test_post_sign_in() {
         .unwrap()
         .to_str()
         .unwrap();
-    assert!(location.starts_with("http://localhost:3000/client/authorization_callback?code="));
+    assert_eq!(location, "/authorization/authorize");
+
+    let cookie_header = response
+        .headers()
+        .get("set-cookie")
+        .unwrap()
+        .to_str()
+        .unwrap();
+
+    let authorize_response = router
+        .oneshot(
+            Request::builder()
+                .uri("/authorize")
+                .header(header::COOKIE, cookie_header)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(authorize_response.status(), StatusCode::SEE_OTHER);
+
+    let authorize_location = authorize_response
+        .headers()
+        .get("location")
+        .unwrap()
+        .to_str()
+        .unwrap();
+    assert!(
+        authorize_location.starts_with("http://localhost:3000/client/authorization_callback?code=")
+    );
 }
 
 #[tokio::test]
@@ -94,7 +125,26 @@ async fn test_token() {
         .await
         .unwrap();
 
-    let location = sign_in_response
+    let cookie_header = sign_in_response
+        .headers()
+        .get("set-cookie")
+        .unwrap()
+        .to_str()
+        .unwrap();
+
+    let authorize_response = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/authorize")
+                .header(header::COOKIE, cookie_header)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let location = authorize_response
         .headers()
         .get("location")
         .unwrap()
