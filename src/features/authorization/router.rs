@@ -10,6 +10,7 @@ pub fn router(db: PgPool) -> Router {
         .route("/authorize", get(super::authorize::handler))
         .route("/sign_in", get(super::sign_in_page::handler))
         .route("/sign_in", post(super::sign_in::handler))
+        .route("/sign_out", get(super::sign_out_page::handler))
         .route("/token", post(super::token::handler))
         .with_state(db)
         .layer(CookieManagerLayer::new())

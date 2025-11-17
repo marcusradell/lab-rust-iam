@@ -79,6 +79,10 @@ async fn landing_page(cookies: Cookies) -> impl IntoResponse {
                 <form action="/client/log_out" method="post">
                     <button type="submit">Log out from client</button>
                 </form>
+
+                <p>
+                    Go to <a href="http://localhost:3000/authorization/sign_out">Authorization server sign out</a> page.
+                </p>
             "#,
         )
     }
