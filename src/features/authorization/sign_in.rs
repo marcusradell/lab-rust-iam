@@ -3,10 +3,9 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::rand_core::OsRng,
 };
 use axum::{Form, extract::State, response::Redirect};
-use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::RngCore;
 use serde::Deserialize;
 use sqlx::PgPool;
+use tower_cookies::{Cookie, Cookies};
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -17,6 +16,7 @@ pub struct AuthorizeFormData {
 
 pub async fn handler(
     State(db): State<PgPool>,
+    cookies: Cookies,
     Form(body): Form<AuthorizeFormData>,
 ) -> Result<Redirect, axum::http::StatusCode> {
     let user_exists: bool =
@@ -74,26 +74,7 @@ pub async fn handler(
         user_id
     };
 
-    let mut code_bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut code_bytes);
-    let code = URL_SAFE_NO_PAD.encode(code_bytes);
+    cookies.add(Cookie::new("authorization_session_id", user_id.to_string()));
 
-    let created_at = chrono::Utc::now();
-    let expires_at = created_at + chrono::Duration::minutes(10);
-
-    sqlx::query(
-        "INSERT INTO authorization_codes (code, user_id, created_at, expires_at) VALUES ($1, $2, $3, $4)",
-    )
-    .bind(&code)
-    .bind(user_id)
-    .bind(created_at)
-    .bind(expires_at)
-    .execute(&db)
-    .await
-    .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(Redirect::to(&format!(
-        "http://localhost:3000/client/authorization_callback?code={}",
-        code
-    )))
+    Ok(Redirect::to("/authorization/authorize"))
 }
