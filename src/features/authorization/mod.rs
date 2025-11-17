@@ -1,3 +1,4 @@
+mod authorize;
 mod router;
 pub use router::router;
 #[cfg(test)]

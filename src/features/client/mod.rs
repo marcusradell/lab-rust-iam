@@ -67,7 +67,7 @@ async fn landing_page(cookies: Cookies) -> impl IntoResponse {
         Html(
             r#"
         <H1>Sign In</H1>
-        <a href="http://localhost:3000/authorization/sign_in">Sign in with Rådell</a>
+        <a href="http://localhost:3000/authorization/authorize">Sign in with Rådell</a>
         "#,
         )
     } else {
