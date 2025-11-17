@@ -1,9 +1,11 @@
-use axum::extract::Query;
+use axum::extract::{Query, State};
 use axum::response::Redirect;
 use serde::Deserialize;
 use serde::Serialize;
 use tower_cookies::Cookie;
 use tower_cookies::Cookies;
+
+use super::router::AppState;
 
 #[derive(Serialize, Deserialize)]
 pub struct QueryData {
@@ -17,13 +19,16 @@ struct TokenData {
 }
 
 pub async fn handler(
+    State(state): State<AppState>,
     Query(query_data): Query<QueryData>,
     cookies: Cookies,
 ) -> Result<Redirect, axum::http::StatusCode> {
     let client = reqwest::Client::new();
 
+    let token_url = format!("{}/authorization/token", state.api_base_url);
+
     let response = client
-        .post("http://localhost:3000/authorization/token")
+        .post(&token_url)
         .json(&query_data)
         .send()
         .await

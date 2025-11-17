@@ -35,9 +35,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nest("/status", features::status::router())
         .nest(
             "/authorization",
-            features::authorization::router(db.clone(), api_base_url),
+            features::authorization::router(db.clone(), api_base_url.clone()),
         )
-        .nest("/client", features::client::router())
+        .nest("/client", features::client::router(api_base_url))
         .merge(Router::new().route("/", get(root_route)));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")

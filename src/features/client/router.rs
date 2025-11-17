@@ -4,7 +4,14 @@ use axum::{
 };
 use tower_cookies::CookieManagerLayer;
 
-pub fn router() -> Router {
+#[derive(Clone)]
+pub struct AppState {
+    pub api_base_url: String,
+}
+
+pub fn router(api_base_url: String) -> Router {
+    let state = AppState { api_base_url };
+
     Router::new()
         .route(
             "/authorization_callback",
@@ -13,4 +20,5 @@ pub fn router() -> Router {
         .route("/", get(super::landing_page::handler))
         .route("/log_out", post(super::log_out::handler))
         .layer(CookieManagerLayer::new())
+        .with_state(state)
 }
