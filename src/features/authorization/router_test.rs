@@ -81,7 +81,7 @@ async fn test_token() {
         .append_pair("password", "testpassword")
         .finish();
 
-    let authorize_response = router
+    let sign_in_response = router
         .clone()
         .oneshot(
             Request::builder()
@@ -94,7 +94,7 @@ async fn test_token() {
         .await
         .unwrap();
 
-    let location = authorize_response
+    let location = sign_in_response
         .headers()
         .get("location")
         .unwrap()
