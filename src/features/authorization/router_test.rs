@@ -20,7 +20,7 @@ async fn setup() -> Router {
 }
 
 #[tokio::test]
-async fn test_sign_in_route() {
+async fn test_sign_in_page() {
     let router = setup().await;
 
     let response = router
