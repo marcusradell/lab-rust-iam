@@ -41,7 +41,7 @@ async fn test_sign_in_route() {
 }
 
 #[tokio::test]
-async fn test_authorize() {
+async fn test_post_sign_in() {
     let router = setup().await;
 
     let form_data = form_urlencoded::Serializer::new(String::new())
@@ -52,7 +52,7 @@ async fn test_authorize() {
     let response = router
         .oneshot(
             Request::builder()
-                .uri("/authorize")
+                .uri("/sign_in")
                 .method("POST")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .body(Body::from(form_data))
@@ -85,7 +85,7 @@ async fn test_token() {
         .clone()
         .oneshot(
             Request::builder()
-                .uri("/authorize")
+                .uri("/sign_in")
                 .method("POST")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .body(Body::from(form_data))
