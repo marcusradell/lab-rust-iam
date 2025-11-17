@@ -11,7 +11,7 @@ pub async fn handler(cookies: tower_cookies::Cookies) -> Result<Html<&'static st
         return Ok(Html(
             r#"
     <H1>Sign Out</H1>
-    <p>You are already signed out.</p>
+    <p>You are signed out.</p>
         "#,
         ));
     }

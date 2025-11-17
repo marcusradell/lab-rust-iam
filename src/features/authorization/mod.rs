@@ -1,5 +1,6 @@
 mod authorize;
 mod router;
+mod sign_out;
 mod sign_out_page;
 pub use router::router;
 #[cfg(test)]
