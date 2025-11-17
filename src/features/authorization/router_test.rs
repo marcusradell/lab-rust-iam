@@ -12,11 +12,12 @@ async fn setup() -> Router {
     dotenvy::from_filename("test.env").unwrap();
 
     let db_url = std::env::var("DATABASE_URL").unwrap();
+    let api_base_url = std::env::var("API_BASE_URL").expect("API_BASE_URL must be set");
 
     let db = PgPoolOptions::new().connect(&db_url).await.unwrap();
 
     migrate!("./migrations").run(&db).await.unwrap();
-    super::router(db)
+    super::router(db, api_base_url)
 }
 
 #[tokio::test]
@@ -98,9 +99,13 @@ async fn test_post_sign_in() {
         .unwrap()
         .to_str()
         .unwrap();
-    assert!(
-        authorize_location.starts_with("http://localhost:3000/client/authorization_callback?code=")
-    );
+
+    let api_base_url = std::env::var("API_BASE_URL").expect("API_BASE_URL must be set");
+
+    assert!(authorize_location.starts_with(&format!(
+        "{}/client/authorization_callback?code=",
+        api_base_url
+    )));
 }
 
 #[tokio::test]

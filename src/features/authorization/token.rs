@@ -4,8 +4,10 @@ use chrono::{DateTime, Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use sqlx::FromRow;
 use uuid::Uuid;
+
+use super::router::AppState;
 
 #[derive(Deserialize)]
 pub struct AuthorizationData {
@@ -31,14 +33,14 @@ struct Claims {
 }
 
 pub async fn handler(
-    State(db): State<PgPool>,
+    State(state): State<AppState>,
     Json(data): Json<AuthorizationData>,
 ) -> Result<Json<ResponseData>, axum::http::StatusCode> {
     let authorization_code: AuthorizationCode = sqlx::query_as(
         "SELECT user_id, expires_at FROM authorization_codes WHERE code=$1 ORDER BY created_at DESC",
     )
     .bind(&data.code)
-    .fetch_one(&db)
+    .fetch_one(&state.db)
     .await
     .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -76,7 +78,7 @@ pub async fn handler(
     .bind(authorization_code.user_id)
     .bind(refresh_token_created_at)
     .bind(refresh_token_expires_at)
-    .execute(&db)
+    .execute(&state.db)
     .await
     .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 

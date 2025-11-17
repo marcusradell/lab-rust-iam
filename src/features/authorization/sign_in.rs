@@ -4,9 +4,10 @@ use argon2::{
 };
 use axum::{Form, extract::State, response::Redirect};
 use serde::Deserialize;
-use sqlx::PgPool;
 use tower_cookies::{Cookie, Cookies};
 use uuid::Uuid;
+
+use super::router::AppState;
 
 #[derive(Deserialize)]
 pub struct AuthorizeFormData {
@@ -15,14 +16,14 @@ pub struct AuthorizeFormData {
 }
 
 pub async fn handler(
-    State(db): State<PgPool>,
+    State(state): State<AppState>,
     cookies: Cookies,
     Form(body): Form<AuthorizeFormData>,
 ) -> Result<Redirect, axum::http::StatusCode> {
     let user_exists: bool =
         sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
             .bind(&body.email)
-            .fetch_one(&db)
+            .fetch_one(&state.db)
             .await
             .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -44,7 +45,7 @@ pub async fn handler(
         .bind(&body.email)
         .bind(&password_hash)
         .bind(created_at)
-        .execute(&db)
+        .execute(&state.db)
         .await
         .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -53,7 +54,7 @@ pub async fn handler(
         let stored_password_hash: String =
             sqlx::query_scalar("SELECT password_hash FROM users WHERE email = $1")
                 .bind(&body.email)
-                .fetch_one(&db)
+                .fetch_one(&state.db)
                 .await
                 .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -67,7 +68,7 @@ pub async fn handler(
 
         let user_id: Uuid = sqlx::query_scalar("SELECT id FROM users WHERE email = $1")
             .bind(&body.email)
-            .fetch_one(&db)
+            .fetch_one(&state.db)
             .await
             .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 

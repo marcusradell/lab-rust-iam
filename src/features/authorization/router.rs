@@ -5,7 +5,15 @@ use axum::{
 use sqlx::PgPool;
 use tower_cookies::CookieManagerLayer;
 
-pub fn router(db: PgPool) -> Router {
+#[derive(Clone)]
+pub struct AppState {
+    pub db: PgPool,
+    pub api_base_url: String,
+}
+
+pub fn router(db: PgPool, api_base_url: String) -> Router {
+    let state = AppState { db, api_base_url };
+
     Router::new()
         .route("/authorize", get(super::authorize::handler))
         .route("/sign_in", get(super::sign_in_page::handler))
@@ -13,6 +21,6 @@ pub fn router(db: PgPool) -> Router {
         .route("/sign_out", get(super::sign_out_page::handler))
         .route("/sign_out", post(super::sign_out::handler))
         .route("/token", post(super::token::handler))
-        .with_state(db)
+        .with_state(state)
         .layer(CookieManagerLayer::new())
 }

@@ -1,11 +1,15 @@
 use axum::{extract::State, http::StatusCode, response::Redirect};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use rand::RngCore;
-use sqlx::PgPool;
 use tower_cookies::Cookies;
 use uuid::Uuid;
 
-pub async fn handler(cookies: Cookies, State(db): State<PgPool>) -> Result<Redirect, StatusCode> {
+use super::router::AppState;
+
+pub async fn handler(
+    cookies: Cookies,
+    State(state): State<AppState>,
+) -> Result<Redirect, StatusCode> {
     let session_id_cookie: String = cookies
         .get("authorization_session_id")
         .map(|cookie| cookie.value().to_string())
@@ -34,12 +38,12 @@ pub async fn handler(cookies: Cookies, State(db): State<PgPool>) -> Result<Redir
     .bind(user_id)
     .bind(created_at)
     .bind(expires_at)
-    .execute(&db)
+    .execute(&state.db)
     .await
     .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Redirect::to(&format!(
-        "http://localhost:3000/client/authorization_callback?code={}",
-        code
+        "{}/client/authorization_callback?code={}",
+        state.api_base_url, code
     )))
 }

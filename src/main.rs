@@ -18,6 +18,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_url =
         std::env::var("DATABASE_URL").map_err(|e| format!("DATABASE_URL must be set: {}", e))?;
 
+    let api_base_url =
+        std::env::var("API_BASE_URL").map_err(|e| format!("API_BASE_URL must be set: {}", e))?;
+
     let db = PgPoolOptions::new()
         .connect(&db_url)
         .await
@@ -32,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nest("/status", features::status::router())
         .nest(
             "/authorization",
-            features::authorization::router(db.clone()),
+            features::authorization::router(db.clone(), api_base_url),
         )
         .nest("/client", features::client::router())
         .merge(Router::new().route("/", get(root_route)));
