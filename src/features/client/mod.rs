@@ -23,7 +23,7 @@ struct TokenData {
 async fn authorization_callback(
     Query(query_data): Query<QueryData>,
     cookies: Cookies,
-) -> impl IntoResponse {
+) -> Result<Redirect, axum::http::StatusCode> {
     let client = reqwest::Client::new();
 
     let response = client
@@ -31,9 +31,12 @@ async fn authorization_callback(
         .json(&query_data)
         .send()
         .await
-        .unwrap();
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let token_data: TokenData = response.json().await.unwrap();
+    let token_data: TokenData = response
+        .json()
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let access_cookie: Cookie = Cookie::build(("access_token", token_data.access_token))
         .path("/")
@@ -51,7 +54,7 @@ async fn authorization_callback(
 
     cookies.add(refresh_cookie);
 
-    Redirect::to("/client")
+    Ok(Redirect::to("/client"))
 }
 
 async fn landing_page(cookies: Cookies) -> impl IntoResponse {
